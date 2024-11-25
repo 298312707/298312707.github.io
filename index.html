@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表白爱心动画</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            color: #ff4081;
+        }
+
+        .name {
+            font-size: 3em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <p>Dear <span class="name" id="name"></span>,</p>
+        <p>Happy to have you in my life ❤️</p>
+    </div>
+    <canvas id="heartCanvas"></canvas>
+    <script>
+        // 配置表白名字
+        const NAME = "小明"; // 修改此处设置表白名字
+
+        // 获取 HTML 元素
+        const nameElement = document.getElementById("name");
+        const canvas = document.getElementById("heartCanvas");
+        const ctx = canvas.getContext("2d");
+
+        nameElement.textContent = NAME;
+
+        // 调整画布尺寸
+        const resizeCanvas = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, vx, vy, size, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.size = size;
+                this.color = color;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 反弹效果
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        // 生成爱心形状
+        const heartFunction = (t) => {
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+            return { x, y };
+        };
+
+        // 粒子数组
+        const particles = [];
+        const particleCount = 1000;
+
+        // 初始化粒子
+        for (let i = 0; i < particleCount; i++) {
+            const t = Math.random() * Math.PI * 2;
+            const { x, y } = heartFunction(t);
+
+            // 缩放和中心调整
+            const scale = Math.min(canvas.width, canvas.height) / 30;
+            const particleX = canvas.width / 2 + x * scale;
+            const particleY = canvas.height / 2 + y * scale;
+
+            // 随机速度和大小
+            const vx = (Math.random() - 0.5) * 2;
+            const vy = (Math.random() - 0.5) * 2;
+            const size = Math.random() * 2 + 1;
+            const color = `hsl(${Math.random() * 360}, 70%, 70%)`;
+
+            particles.push(new Particle(particleX, particleY, vx, vy, size, color));
+        }
+
+        // 动画循环
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 更新和绘制粒子
+            for (const particle of particles) {
+                particle.update();
+                particle.draw();
+            }
+
+            // 帧率控制
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        // 画面中心添加心形边框
+        const drawHeartBorder = () => {
+            ctx.save();
+            ctx.strokeStyle = "#ff4081";
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            for (let t = 0; t <= Math.PI * 2; t += 0.01) {
+                const { x, y } = heartFunction(t);
+                const scale = Math.min(canvas.width, canvas.height) / 30;
+                const px = canvas.width / 2 + x * scale;
+                const py = canvas.height / 2 + y * scale;
+
+                t === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        // 每隔一段时间绘制边框
+        setInterval(drawHeartBorder, 3000);
+    </script>
+</body>
+</html>
